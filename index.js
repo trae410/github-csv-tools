@@ -9,10 +9,12 @@ const { throttling } = require("@octokit/plugin-throttling");
 
 const { importFile } = require("./import.js");
 const { exportIssues } = require("./export.js");
+const { transferCopy } = require("./transfer-copy.js");
+
 
 program
   .version("2.0.0")
-  .arguments("[file]")
+  .arguments("[importFileOrTransfer]")
   .option(
     "-g, --github_enterprise [https://api.github.my-company.com]",
     "Your GitHub Enterprise URL."
@@ -27,6 +29,19 @@ program
   )
   .option("-r, --repository [repository]", "The repository name (slug).")
   .option(
+    "-to_g, --to_github_enterprise [https://api.github.my-company.com]",
+    "The transfer copy to GitHub Enterprise URL."
+  )
+  .option(
+    "-to_t, --toToken [token]",
+    "The transfer copy to GitHub token. https://github.com/settings/tokens"
+  )
+  .option(
+    "-to_o, --toOrganization [organization]",
+    "The transfer copy to User or Organization slug that the repo lives under."
+  )
+  .option("-to_r, --toRepository [repository]", "The transfer copy to repository name (slug).")
+  .option(
     "-f, --exportFileName [export.csv]",
     "The name of the CSV you'd like to export to."
   )
@@ -37,12 +52,12 @@ program
   .option("-c, --exportComments", "Include comments in the export.")
   .option("-e, --exportAll", "Include all data in the export.")
   .option("-v, --verbose", "Include additional logging information.")
-  .action(function (file, options) {
+  .action(function (importFileOrTransfer, options) {
     co(function* () {
       var retObject = {};
-      retObject.githubUrl =
-        options.github_enterprise || "https://api.github.com";
+      retObject.githubUrl = options.github_enterprise || "https://api.github.com";
       retObject.token = options.token || "";
+      // from
       if (retObject.token === "") {
         retObject.token = yield prompt(
           "token (get from https://github.com/settings/tokens): "
@@ -59,15 +74,41 @@ program
       retObject.exportAll = options.exportAll || false;
       retObject.verbose = options.verbose || false;
 
+      // from
       retObject.userOrOrganization = options.organization || "";
       if (retObject.userOrOrganization === "") {
         retObject.userOrOrganization = yield prompt("user or organization: ");
       }
-
+      //from
       retObject.repo = options.repository || "";
       if (retObject.repo === "") {
         retObject.repo = yield prompt("repository: ");
       }
+
+      // console.log(importFileOrTransfer)
+      if (importFileOrTransfer === "transfer") {
+        // console.log("is transfer")
+        // transfer to data
+        retObject.toGithubUrl = options.to_github_enterprise || "https://api.github.com";
+        retObject.toToken = options.toToken || "";
+        if (retObject.toToken === "") {
+          console.log("should yield")
+          retObject.toToken = yield prompt(
+            "Transfer to token (get from https://github.com/settings/tokens): "
+          );
+        }
+
+        retObject.toUserOrOrganization = options.toOrganization || "";
+        if (retObject.toUserOrOrganization === "") {
+          retObject.toUserOrOrganization = yield prompt("transfer copy to user or organization: ");
+        }
+        
+        retObject.toRepo = options.toRepository || "";
+        if (retObject.toRepo === "") {
+          retObject.toRepo = yield prompt("transfer copy to repository: ");
+        }
+      }
+
       return retObject;
     }).then(
       function (values) {
@@ -97,9 +138,13 @@ program
           },
         });
 
-        if (file) {
+        if (importFileOrTransfer) {
           // This is an import!
-          importFile(octokit, file, values);
+          if (importFileOrTransfer === "transfer") {
+            transferCopy(octokit, values)
+          } else {
+            importFile(octokit, importFileOrTransfer, values);
+          }
         } else {
           // this is an export!
           exportIssues(octokit, values);

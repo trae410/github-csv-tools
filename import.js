@@ -20,58 +20,96 @@ const importFile = (octokit, file, values) => {
         csvRows.shift();
 
         // get indexes of the fields we need
-        var titleIndex = cols.indexOf("title");
-        var bodyIndex = cols.indexOf("body");
-        var labelsIndex = cols.indexOf("labels");
-        var milestoneIndex = cols.indexOf("milestone");
-        var assigneeIndex = cols.indexOf("assignee");
-        var stateIndex = cols.indexOf("state");
-
-        if (titleIndex === -1) {
-          console.error("Title required by GitHub, but not found in CSV.");
-          process.exit(1);
+        var indexes = {
+          title: cols.indexOf("title"),
+          body: cols.indexOf("body"),
+          labels: cols.indexOf("labels"),
+          milestone: cols.indexOf("milestone"),
+          assignee: cols.indexOf("assignee"),
+          state: cols.indexOf("state"),
         }
+        // for every comment on an issue, a seperate issue was created with only the comment data different
+        const commentUserIndex = cols.indexOf("comment.user")
+        const commentBodyIndex = cols.indexOf("comment.body")
+
+
+        // if (commentUserIndex) {
+
+        //   comments = await octokit.issues.listComments({
+        //     owner: row,
+        //     repo,
+        //     issue_number,
+        //   })
+          
+        // }
+
+
+        if (indexes.title === -1) {
+          // if nested properties formatted as item.item eg: "issue.title"
+          var newTitleIndex = cols.indexOf("issue.title")
+          if (newTitleIndex) {
+            // change all indexes to find with prefix of "issue."
+            for (key in indexes) {
+              indexes[key] = cols.indexOf(`issue.${key}`)
+            }
+          } else {
+            // if still cant find title
+            console.error("Title required by GitHub, but not found in CSV.");
+            process.exit(1);
+          }
+        }
+
         const createPromises = csvRows.map((row) => {
           var sendObj = {
             owner: values.userOrOrganization,
             repo: values.repo,
-            title: row[titleIndex],
+            title: row[indexes.title],
           };
 
+          if (commentUserIndex > -1 && commentBodyIndex > -1 && row[commentBodyIndex] !== "") {
+            // for every comment on an issue, a seperate issue was created with only the comment data different
+            sendObj.comment = {
+              owner: row[commentUserIndex],
+              repo: values.repo,
+              issue_number: undefined, // can't control issue number when creating the issue so we must create issue first
+              body: row[commentBodyIndex]
+            }
+          }
+
           // if we have a body column, pass that.
-          if (bodyIndex > -1) {
-            sendObj.body = row[bodyIndex];
+          if (indexes.body > -1) {
+            sendObj.body = row[indexes.body];
           }
 
           // if we have a labels column, pass that.
-          if (labelsIndex > -1 && row[labelsIndex] !== "") {
-            sendObj.labels = row[labelsIndex].split(",");
+          if (indexes.labels > -1 && row[indexes.labels] !== "") {
+            sendObj.labels = row[indexes.labels].split(",");
           }
 
           // if we have a milestone column, pass that.
-          if (milestoneIndex > -1 && row[milestoneIndex] !== "") {
-            sendObj.milestone = row[milestoneIndex];
+          if (indexes.milestone > -1 && row[indexes.milestone] !== "") {
+            sendObj.milestone = row[indexes.milestone];
           }
 
           // if we have an assignee column, pass that.
-          if (assigneeIndex > -1 && row[assigneeIndex] !== "") {
-            sendObj.assignees = row[assigneeIndex].replace(/ /g, "").split(",");
+          if (indexes.assignee > -1 && row[indexes.assignee] !== "") {
+            sendObj.assignees = row[indexes.assignee].replace(/ /g, "").split(",");
           }
 
           // console.log("sendObj", sendObj);
           let state = false;
-          if (stateIndex > -1 && row[stateIndex] === "closed") {
-            state = row[stateIndex];
+          if (indexes.state > -1 && row[indexes.state] === "closed") {
+            state = row[indexes.state];
           }
           return createIssue(octokit, sendObj, state);
         });
 
         Promise.all(createPromises).then(
           (res) => {
-            const successes = res.filter((cr) => {
+            const successes = res.filter(({ cr }) => {
               return cr.status === 200 || cr.status === 201;
             });
-            const fails = res.filter((cr) => {
+            const fails = res.filter(({ cr }) => {
               return cr.status !== 200 && cr.status !== 201;
             });
 
@@ -90,7 +128,7 @@ const importFile = (octokit, file, values) => {
           },
           (err) => {
             console.error("Error");
-            console.error(err);
+            console.error();
             process.exit(0);
           }
         );
