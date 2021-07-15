@@ -55,7 +55,8 @@ program
   .action(function (importFileOrTransfer, options) {
     co(function* () {
       var retObject = {};
-      retObject.githubUrl = options.github_enterprise || "https://api.github.com";
+      retObject.githubUrl = 
+        options.github_enterprise || "https://api.github.com";
       retObject.token = options.token || "";
       // from
       if (retObject.token === "") {
@@ -74,25 +75,22 @@ program
       retObject.exportAll = options.exportAll || false;
       retObject.verbose = options.verbose || false;
 
-      // from
+      // get issues data from
       retObject.userOrOrganization = options.organization || "";
       if (retObject.userOrOrganization === "") {
         retObject.userOrOrganization = yield prompt("user or organization: ");
       }
-      //from
+      // get issues data from
       retObject.repo = options.repository || "";
       if (retObject.repo === "") {
         retObject.repo = yield prompt("repository: ");
       }
 
-      // console.log(importFileOrTransfer)
       if (importFileOrTransfer === "transfer") {
-        // console.log("is transfer")
         // transfer to data
         retObject.toGithubUrl = options.to_github_enterprise || "https://api.github.com";
         retObject.toToken = options.toToken || "";
         if (retObject.toToken === "") {
-          console.log("should yield")
           retObject.toToken = yield prompt(
             "Transfer to token (get from https://github.com/settings/tokens): "
           );
@@ -139,10 +137,11 @@ program
         });
 
         if (importFileOrTransfer) {
-          // This is an import!
+          // This is a transfer copy!
           if (importFileOrTransfer === "transfer") {
-            transferCopy(octokit, values)
+            transferCopy(octokit, values);
           } else {
+            // This is an import!
             importFile(octokit, importFileOrTransfer, values);
           }
         } else {

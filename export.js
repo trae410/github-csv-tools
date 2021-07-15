@@ -1,3 +1,4 @@
+// const csv = require("csv");
 const fs = require("fs");
 const converter = require("json-2-csv");
 
@@ -228,4 +229,4 @@ const exportIssues = (octokit, values) => {
   );
 };
 
-module.exports = { exportIssues };
+module.exports = { exportIssues, getComment, defaultExportColumns };

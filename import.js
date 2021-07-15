@@ -32,21 +32,9 @@ const importFile = (octokit, file, values) => {
         const commentUserIndex = cols.indexOf("comment.user")
         const commentBodyIndex = cols.indexOf("comment.body")
 
-
-        // if (commentUserIndex) {
-
-        //   comments = await octokit.issues.listComments({
-        //     owner: row,
-        //     repo,
-        //     issue_number,
-        //   })
-          
-        // }
-
-
         if (indexes.title === -1) {
-          // if nested properties formatted as item.item eg: "issue.title"
           var newTitleIndex = cols.indexOf("issue.title")
+          // get the value in case the nested properties formatted as item.item eg: "issue.title", 
           if (newTitleIndex) {
             // change all indexes to find with prefix of "issue."
             for (key in indexes) {
@@ -128,7 +116,7 @@ const importFile = (octokit, file, values) => {
           },
           (err) => {
             console.error("Error");
-            console.error();
+            console.error(err);
             process.exit(0);
           }
         );
