@@ -109,7 +109,10 @@ const importData = async (octokit, values, filteredData, commentsArray) => {
       return { res, compareIssueNumbers };
     },
     (err) => {
-      console.error("Error in issuesCreatedOrUpdated");
+      console.log("Error in issuesCreatedOrUpdated");
+      if (er.status === 404) {
+        console.log("If you are transferring issues from one git account to another you need to add the users as collaborators to any private repos")
+      }
       console.error(err);
       process.exit(0);
     }
@@ -122,7 +125,6 @@ const importData = async (octokit, values, filteredData, commentsArray) => {
       process.exit(0);
     }
 
-    console.log("Importing comments...");
     const allComments = await listAllRepoCommentsForIssues(
       octokit,
       values.toUserOrOrganization,
@@ -163,8 +165,6 @@ const importData = async (octokit, values, filteredData, commentsArray) => {
             .createComment({
               ...comment,
               issue_number: issueNumber,
-              // }).then((res) => {
-              //   return res
             })
             .then((res) => {
               return { cr: res };
@@ -238,8 +238,6 @@ const transferCopy = (octokit, values) => {
       let commentsArray;
       // Add on comments, if requested.
       if (values.exportComments === true) {
-        // If we want comments, replace the data that will get pushed into
-        // the CSV with our full comments data:
         if (
           filteredData[0] &&
           Object.prototype.hasOwnProperty.call(filteredData[0], "number")

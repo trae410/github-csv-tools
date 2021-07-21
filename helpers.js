@@ -3,9 +3,9 @@ const createIssue = (octokit, issueInfo, state = false) => {
     octokit.issues.create(issueInfo).then(
       (res) => {
         // console.log("res", res);
+        const issueNumber = res.data.number;
         console.log(`Created issue #${issueNumber}`)
         if (res.status === 201) {
-          const issueNumber = res.data.number;
           if (state === false) {
             // Success creating the issue and we do not have to close the issue, so we're done.
             resolve({cr: res, newIssueNumber: issueNumber, oldIssueNumber: issueInfo.oldIssueNumber});
@@ -94,45 +94,6 @@ const updateIssue = (octokit, sendObj, existingIssue) => {
   });
 };
 
-// const updateIssue = (octokit, sendObj, existingIssue) => {
-//   // will only update: title, body, labels, state
-//   const { owner, repo, title, body, labels, state } = sendObj
-
-//   const getLabels = () => {
-//     let newLabelArray = []
-//     const combineLabels = [...existingIssue.labels || [], ...sendObj.labels || []]
-//     combineLabels.forEach(label => {
-//       // labels in sendObj are strings and labels in existingIssue are object
-//       if (label && typeof(label) === "string") {
-//         if (!newLabelArray.includes("label")) {
-//           newLabelArray.push(label)
-//         }
-//       } else {
-//         if (labels.name && !newLabelArray.includes(labels.name)) {
-//           newLabelArray.push(label.name)
-//         }
-//       }
-//     })
-//     return newLabelArray
-//   }
-
-//   const cleanedUpdateIssue = {
-//     owner,
-//     repo,
-//     issue_number: existingIssue.number,
-//     title,
-//     body,
-//     labels: getLabels(),
-//     state,
-//   }
-//   console.log("cleanedUpdateIssue...", cleanedUpdateIssue)
-//   return octokit.issues.update(cleanedUpdateIssue).then((res) => {
-//     // newIssue number is the issue number that will host this issue in the [to repo]'s issues' and will be used for the purpose of updating / creating comments
-//     return {cr: res, newIssueNumber: existingIssue.number, oldIssueNumber: sendObj.oldIssueNumber, isUpdate: true}
-//   }).catch(err => {
-//     return err
-//   })
-// }
 const listAllRepoIssues = (octokit, owner, repo) => {
   return octokit.rest.issues
     .listForRepo({
@@ -149,25 +110,6 @@ const listAllRepoIssues = (octokit, owner, repo) => {
     });
 };
 
-// const listAllRepoIssues = (octokit, owner, repo) => {
-//   return new Promise((reject, resolve) => {
-//     octokit.rest.issues.listForRepo({
-//       owner,
-//       repo,
-//     }).then(
-//       (res) => {
-//         // need to check res status first
-//         resolve(res.data.filter(data => !data.pull_request))
-//       },
-//       (err) => {
-//         reject(err)
-//         // console.error("error in listAllRepoIssues", err)
-//         // process.exit(0)
-//       }
-//     )
-
-//   }
-// }
 
 // returns the existing issue if issue title or body are the same.
 // if an issues body and title are edited this will return undefined and a new issue will be created
@@ -195,22 +137,6 @@ const listAllRepoCommentsForIssues = (octokit, owner, repo) => {
       return [];
     });
 };
-
-// const listAllRepoCommentsForIssues = (octokit, owner, repo) => {
-//   return new Promise((reject, resolve) => {
-//     octokit.rest.issues.listCommentsForRepo({
-//       owner,
-//       repo,
-//     }).then(
-//       (res) => {
-//         resolve(res.data)
-//       },
-//       (err) => {
-//         reject(err)
-//       }
-//     )
-//   }
-// }
 
 // edited comments will return undefined (indicates to create a new comment ... )
 const commentAlreadyExists = (allComments, commentInQuestion, issueNumber) => {
