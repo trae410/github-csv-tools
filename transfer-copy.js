@@ -20,8 +20,10 @@ const getCommentsArray = async (octokit, values, data, verbose = false) => {
     const commentsData = await getComment(octokit, values, issueObject.number);
     commentsData.forEach((comment) => {
       commentsArray.push({
-        // owner always has to be the repo owner
+        // this is the repo owner... not necessarily the comment owner
+        // owner is required but not actually used? try transferring from one user account to another where user A made a comment and user B is the to_organization
         owner: values.toUserOrOrganization,
+        userLogin: comment.user.login,
         repo: values.toRepo,
         oldIssueNumber: issueObject.number, // this is the issue number of the exported issue
         body: comment.body,
@@ -125,6 +127,7 @@ const importData = async (octokit, values, filteredData, commentsArray) => {
       process.exit(0);
     }
 
+    // get all existing issues comments in the repo we are trying to transfer to
     const allComments = await listAllRepoCommentsForIssues(
       octokit,
       values.toUserOrOrganization,
@@ -210,7 +213,9 @@ const importData = async (octokit, values, filteredData, commentsArray) => {
       }
     );
   } else {
-    console.log("No comments to copy");
+    if (values.exportComments) {
+      console.log("No comments to copy");
+    }
     return;
   }
 };

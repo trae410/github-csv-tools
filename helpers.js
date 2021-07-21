@@ -101,15 +101,14 @@ const listAllRepoIssues = (octokit, owner, repo) => {
       repo,
     })
     .then((res) => {
-      // need to check res status first
+      // need to check res status first ?
       return res.data.filter((data) => !data.pull_request);
     })
     .catch((err) => {
-      console.error("Error in listAllRepoCommentsForIssues:", err);
+      console.error("Error in listAllRepoIssues:", err);
       return [];
     });
 };
-
 
 // returns the existing issue if issue title or body are the same.
 // if an issues body and title are edited this will return undefined and a new issue will be created
@@ -140,13 +139,17 @@ const listAllRepoCommentsForIssues = (octokit, owner, repo) => {
 
 // edited comments will return undefined (indicates to create a new comment ... )
 const commentAlreadyExists = (allComments, commentInQuestion, issueNumber) => {
+  // allComments is from the comments in the repo we are trying to transfer to
+  // commentInQuestion is from the repo we are transfering from
   const matches = (comment) => {
     let doesMatch = false;
-    // comment.user or comment.owner ?
-    if (
-      comment.issue_number === issueNumber &&
-      comment.user === commentInQuestion.owner
-    ) {
+    // listCommentsForRepo method does not return the issue number in the data so we have to extract is from url
+    const numberIsAfter = "/issues/"
+    const existingCommentIssueNumber = comment.issue_url[comment.issue_url.lastIndexOf(numberIsAfter) + numberIsAfter.length]
+    const issueNumbersEqual = parseInt(existingCommentIssueNumber) === parseInt(issueNumber)
+    const isSameUser = comment.user.login === commentInQuestion.userLogin
+    
+    if (issueNumbersEqual && isSameUser) {
       if (comment.body === commentInQuestion.body) {
         return true;
       }
@@ -154,12 +157,6 @@ const commentAlreadyExists = (allComments, commentInQuestion, issueNumber) => {
     return doesMatch;
   };
   const matchingComment = allComments.find((comment) => matches(comment));
-  console.log(
-    "checking if comment already exists...",
-    allComments,
-    "matchingComment...",
-    matchingComment
-  );
   return matchingComment;
 };
 
