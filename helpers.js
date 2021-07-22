@@ -2,13 +2,17 @@ const createIssue = (octokit, issueInfo, state = false) => {
   return new Promise((resolve, reject) => {
     octokit.issues.create(issueInfo).then(
       (res) => {
-        // console.log("res", res);
         const issueNumber = res.data.number;
-        console.log(`Created issue #${issueNumber}`)
-        if (res.status === 201) {
+        if (res.status === 200 || res.status === 201) {
+          console.log(`Created issue #${issueNumber}`);
           if (state === false) {
             // Success creating the issue and we do not have to close the issue, so we're done.
-            resolve({cr: res, newIssueNumber: issueNumber, oldIssueNumber: issueInfo.oldIssueNumber});
+            resolve({
+              cr: res,
+              newIssueNumber: issueNumber,
+              oldIssueNumber: issueInfo.oldIssueNumber,
+              // comment,
+            });
           } else {
             // need to close the issue!
             octokit.issues
@@ -20,20 +24,25 @@ const createIssue = (octokit, issueInfo, state = false) => {
               })
               .then(
                 (editRes) => {
-                  resolve({cr: editRes, newIssueNumber: issueNumber, oldIssueNumber: issueInfo.oldIssueNumber});
+                  resolve({
+                    cr: editRes,
+                    newIssueNumber: issueNumber,
+                    oldIssueNumber: issueInfo.oldIssueNumber,
+                    // comment,
+                  });
                 },
                 (err) => {
-                  reject({cr: err});
+                  reject({ cr: err });
                 }
               );
           }
         } else {
           // error creating the issue
-          reject({cr: res});
+          reject({ cr: res });
         }
       },
       (err) => {
-        reject({cr: err});
+        reject({ cr: err });
       }
     );
   });
@@ -75,20 +84,47 @@ const updateIssue = (octokit, sendObj, existingIssue) => {
   };
 
   return new Promise((resolve, reject) => {
-    console.log("updating issue #" + existingIssue.number);
     octokit.issues.update(cleanedUpdateIssue).then(
       (res) => {
         // newIssue number is the issue number that will host this issue in the [to repo]'s issues' and will be used for the purpose of updating / creating comments
         // return {cr: res, newIssueNumber: existingIssue.number, oldIssueNumber: sendObj.oldIssueNumber, isUpdate: true}
-        resolve({
-          cr: res,
-          newIssueNumber: existingIssue.number,
-          oldIssueNumber: sendObj.oldIssueNumber,
-          isUpdate: true,
-        });
+        if (res.status === 200 || res.status === 201) {
+          console.log("updated issue #" + existingIssue.number);
+          resolve({
+            cr: res,
+            newIssueNumber: existingIssue.number,
+            oldIssueNumber: sendObj.oldIssueNumber,
+            isUpdate: true,
+          });
+        } else {
+          reject({
+            cr: res,
+            newIssueNumber: existingIssue.number,
+            oldIssueNumber: sendObj.oldIssueNumber,
+            isUpdate: true,
+          });
+        }
       },
       (err) => {
         reject({ cr: err, isUpdate: true });
+      }
+    );
+  });
+};
+
+const createComment = (octokit, comment) => {
+  return new Promise((resolve, reject) => {
+    octokit.issues.createComment(comment).then(
+      (res) => {
+        if (res.status === 200 || res.status === 201) {
+          resolve(res);
+        } else {
+          console.log("error on comment in issue", comment.issue_number);
+          reject(res);
+        }
+      },
+      (err) => {
+        reject(err);
       }
     );
   });
@@ -113,11 +149,17 @@ const listAllRepoIssues = (octokit, owner, repo) => {
 // returns the existing issue if issue title or body are the same.
 // if an issues body and title are edited this will return undefined and a new issue will be created
 // note: if there is a way to set an ID or metadata when creating an issue this would be much more accurate
-const issueAlreadyExists = (allIssues, issueInQuestion) => {
+const issueAlreadyExists = (allIssues, issueInQuestion, values) => {
   return allIssues.find(
-    (issue) =>
-      issue.title === issueInQuestion.title ||
-      issue.body === issueInQuestion.body
+    // if the existing issue opener (user) is not the same as the issue in question's owner this will create a new issue because you cant update someone elses issue
+    (issue) => {
+      // even if we indicate the owner when updating or creating, git seems to change this to the current user running the program...?
+      // so we cant care if issue.user.login is different that issueInQuestion.owner
+      return (
+        issue.title === issueInQuestion.title ||
+        issue.body === issueInQuestion.body
+      ); /*&& issue.user.login === issueInQuestion.owner*/
+    }
   );
 };
 
@@ -144,14 +186,18 @@ const commentAlreadyExists = (allComments, commentInQuestion, issueNumber) => {
   const matches = (comment) => {
     let doesMatch = false;
     // listCommentsForRepo method does not return the issue number in the data so we have to extract is from url
-    const numberIsAfter = "/issues/"
-    const existingCommentIssueNumber = comment.issue_url[comment.issue_url.lastIndexOf(numberIsAfter) + numberIsAfter.length]
-    const issueNumbersEqual = parseInt(existingCommentIssueNumber) === parseInt(issueNumber)
-    const isSameUser = comment.user.login === commentInQuestion.userLogin
-    
+    const numberIsAfter = "/issues/";
+    const indexOfnumberInUrl = comment.issue_url.lastIndexOf(numberIsAfter);
+    const existingCommentIssueNumber = parseInt(
+      comment.issue_url.slice(indexOfnumberInUrl + numberIsAfter.length)
+    );
+    const issueNumbersEqual =
+      parseInt(existingCommentIssueNumber) === parseInt(issueNumber);
+    const isSameUser = comment.user.login === commentInQuestion.userLogin;
+
     if (issueNumbersEqual && isSameUser) {
       if (comment.body === commentInQuestion.body) {
-        return true;
+        doesMatch = true;
       }
     }
     return doesMatch;
@@ -163,6 +209,7 @@ const commentAlreadyExists = (allComments, commentInQuestion, issueNumber) => {
 module.exports = {
   createIssue,
   updateIssue,
+  createComment,
   listAllRepoIssues,
   issueAlreadyExists,
   listAllRepoCommentsForIssues,
