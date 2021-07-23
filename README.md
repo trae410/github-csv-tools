@@ -71,19 +71,19 @@ For all actions, the tool will ask you to input a GitHub token. To obtain this t
 
 ## Other Options
 
-| Option                          | Notes                                                                         |
-| -----------------------------   | ------------------------------------------------------------------------------|
-| -V, --version                   | Output the version number                                                     |
-| -g, --github_enterprise         | GitHub Enterprise URL of the source issues. https://your-internal-githubenterprise.com/api/v3 |
-| -t, --token                     | GitHub token of the source issues. https://github.com/settings/tokens         |
-| -o, --organization              | The User or Organization slug that the repo lives under.                      |
-| -r, --repository                | The repository name (slug).                                                   |
-| -to_g, --to_github_enterprise   | The transfer copy to (destination) GitHub Enterprise URL.                     |
-| -to_t, --toToken                | The transfer copy to (destination) GitHub token. https://github.com/settings/tokens |
-| -to_o, --toOrganization         | The transfer copy to (destination) User or Organization slug that the repo lives under.|
-| -to_r, --toRepository           | The transfer copy to (destination) repository name (slug).                             |
-| -v, --verbose                   | Include additional logging information.                                       |
-| -h, --help                      | See all the options and help.                                                 |
+| Option                         | Notes                                                                         |
+| ------------------------------ | ----------------------------------------------------------------------------- |
+| -V, --version                  | Output the version number.                                                    |
+| -g, --github_enterprise        | GitHub Enterprise URL of the source issues. https://your-internal-githubenterprise.com/api/v3 |
+| -t, --token                    | GitHub token of the source issues. https://github.com/settings/tokens         |
+| -o, --organization             | The User or Organization slug that the repo lives under.                      |
+| -r, --repository               | The repository name (slug).                                                   |
+| -to_g, --to_github_enterprise  | The transfer copy to (destination) GitHub Enterprise URL.                     |
+| -to_t, --toToken               | The transfer copy to (destination) GitHub token. https://github.com/settings/tokens |
+| -to_o, --toOrganization        | The transfer copy to (destination) User or Organization slug that the repo lives under.|
+| -to_r, --toRepository          | The transfer copy to (destination) repository name. (slug)                             |
+| -v, --verbose                  | Include additional logging information.                                       |
+| -h, --help                     | See all the options and help.                                                 |
 
 
 ## Development
