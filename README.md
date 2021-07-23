@@ -1,4 +1,5 @@
-<h1 align="center" style="border-bottom: none;">GitHub CSV Tools</h1>
+<h1 align="center" style="border-bottom: none;">Fork of GitHub CSV Tools</h1>
+<h4 align="center">Added ability to import comments and transfer a copy of all issues and their comments from one repo to another</h4>
 <h3 align="center">Import and export GitHub issues via CSV</h3>
 <p align="center">
   
@@ -24,7 +25,7 @@ npm install -g github-csv-tools
 
 After install, `githubCsvTools --help` for info on how to use, or see below.
 
-Instructions for exporting or importing:
+Instructions for exporting, importing or transfering a copy:
 
 ### To Import Issues
 
@@ -49,6 +50,16 @@ githubCsvTools
 
 ** List of all possible options for `exportAttributes` includes every option in the [GitHub API Export](https://developer.github.com/v3/issues/#response-4). Values in child objects can be referenced using a "dot" - for example, a user's `avatar_url` can be accessed via `user.avatar_url`.
 
+
+### To Transfer a copy of Issues
+
+
+Currently imports or updates issues and issue comments (if using -c flag) from one repo to another. Transfer can happen across accounts as long as the repo is public or the users have contributor permissions. Needs more testing.
+
+```
+githubCsvTools transfer
+```
+                                                                                               
 ### Tokens
 
 For all actions, the tool will ask you to input a GitHub token. To obtain this token:
@@ -60,15 +71,20 @@ For all actions, the tool will ask you to input a GitHub token. To obtain this t
 
 ## Other Options
 
-| Option                  | Notes                                                                         |
-| ----------------------- | ------------------------------------------------------------------------------|
-| -V, --version           | Output the version number                                                     |
-| -g, --github_enterprise | Your GitHub Enterprise URL. https://your-internal-githubenterprise.com/api/v3 |
-| -t, --token             | The GitHub token. https://github.com/settings/tokens                          |
-| -o, --organization      | The User or Organization slug that the repo lives under.                      |
-| -r, --repository        | The repository name (slug).                                                   |
-| -v, --verbose           | Include additional logging information.                                       |
-| -h, --help              | See all the options and help.                                                 |
+| Option                        | Notes                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------|
+| -V, --version                 | Output the version number                                                     |
+| -g, --github_enterprise       | GitHub Enterprise URL of the source issues. https://your-internal-githubenterprise.com/api/v3 |
+| -t, --token                   | GitHub token of the source issues. https://github.com/settings/tokens         |
+| -o, --organization            | The User or Organization slug that the repo lives under.                      |
+| -r, --repository              | The repository name (slug).                                                   |
+| -to_g, --to_github_enterprise | The transfer copy to (destination) GitHub Enterprise URL.                     |
+| -to_t, --toToken              | The transfer copy to (destination) GitHub token. https://github.com/settings/tokens |
+| -to_o, --toOrganization       | The transfer copy to (destination) User or Organization slug that the repo lives under.|
+| -to_r, --toRepository         | The transfer copy to (destination) repository name (slug).                             |
+| -v, --verbose                 | Include additional logging information.                                       |
+| -h, --help                    | See all the options and help.                                                 |
+
 
 ## Development
 
