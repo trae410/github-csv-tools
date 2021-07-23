@@ -20,7 +20,7 @@ For usage of the original node module see https://github.com/gavinr/github-csv-t
 
 ## Usage of this fork
 
-`Prerequisite: [Install Node.js](https://nodejs.org/en/)`
+Prerequisite: [Install Node.js](https://nodejs.org/en/)
 
 I haven't made a node package as I'm hoping that gavinr will merge these changes but for now you can try it out by downloading this fork to your global node modules directory (eg: C:\Users\myUsername\AppData\Roaming\npm\node_modules)
 
