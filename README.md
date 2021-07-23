@@ -14,18 +14,20 @@
   </a>
 </p>
 
-## Usage
+## Usage 
 
+For usage of the original node module see https://github.com/gavinr/github-csv-tools
 
-Prerequisite: [Install Node.js](https://nodejs.org/en/), then run this to install:
+## Usage of this fork
 
-```
-npm install -g github-csv-tools
-```
+`Prerequisite: [Install Node.js](https://nodejs.org/en/)`
 
-After install, `githubCsvTools --help` for info on how to use, or see below.
+I haven't made a node package as I'm hoping that gavinr will merge these changes but for now you can try it out by downloading this fork to your global node modules directory (eg: C:\Users\myUsername\AppData\Roaming\npm\node_modules)
 
-Instructions for exporting, importing or transfering a copy:
+...[path to npm]\node_modules
+  ...your existing global node modules
+  - githubCsvTools
+
 
 ### To Import Issues
 
